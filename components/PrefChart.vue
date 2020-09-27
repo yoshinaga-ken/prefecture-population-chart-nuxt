@@ -17,16 +17,42 @@ const API_PREF_POPULATION =
   'https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear'
 
 const POPULATION_TYPE = ['total', 'yang', 'working', 'aged']
+const POPULATION_TYPE_NAME = ['総人口', '年少人口', '生産年齢人口', '老年人口']
 
 export default {
   name: 'PrefChart',
+  props: {
+    chartTitle: {
+      type: String,
+      default: null,
+    },
+    poplationType: {
+      type: String,
+      default: 'total',
+      validator(value) {
+        return POPULATION_TYPE.includes(value)
+      },
+    },
+    prefectures: {
+      type: Array,
+      default: null,
+    },
+  },
   mounted() {
-    this.getPrefData('total').then((prefData) => {
-      this.createChart(prefData.series, prefData.pointStart)
-    })
+    this.getPrefData(this.$props.poplationType, this.$props.prefectures).then(
+      (prefData) => {
+        this.createChart(prefData.series, prefData.pointStart)
+      }
+    )
   },
   methods: {
-    getPrefData(poplationType) {
+    /**
+     * [都道府県情報の取得]
+     * @param  {[String]} poplationType [人口タイプ] ('total', 'yang', 'working','aged')
+     * @param  {[Array]} prefs           [対象都道府県名]
+     * @return {[Object]}                [description]
+     */
+    getPrefData(poplationType, prefs) {
       const ret = {
         prefectures: {},
         series: [],
@@ -40,7 +66,11 @@ export default {
             response.data.result[i].prefName
         }
 
-        const prefCodes = response.data.result.map((d) => d.prefCode)
+        const prefsFiltered = prefs
+          ? response.data.result.filter((d) => prefs.includes(d.prefName))
+          : response.data.result
+
+        const prefCodes = prefsFiltered.map((d) => d.prefCode)
 
         // 全ての都道府県の総人口のデータを取得 (非同期)
         return Promise.all(
@@ -94,9 +124,18 @@ export default {
         },
       })
 
+      const chartTitle =
+        this.$props.chartTitle === null
+          ? '都道府県別 ' +
+            POPULATION_TYPE_NAME[
+              POPULATION_TYPE.indexOf(this.$props.poplationType)
+            ] +
+            ' の推移'
+          : this.$props.chartTitle
+
       const options = {
         title: {
-          text: '',
+          text: chartTitle,
         },
 
         subtitle: {
