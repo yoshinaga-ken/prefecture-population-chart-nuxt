@@ -1,5 +1,22 @@
 <template>
-  <div ref="chart" class="pref-chart-chart" />
+  <div class="pref-chart-container">
+    <fieldset class="prefs-chart-checkboxs">
+      <legend>都道府県</legend>
+      <ul>
+        <li v-for="(item, i) in series" :key="i">
+          <label
+            ><input
+              v-model="item.visible"
+              type="checkbox"
+              @change="onChangePrefCheckbox(item)"
+            />{{ item.name }}</label
+          >
+        </li>
+      </ul>
+    </fieldset>
+
+    <div ref="chart" class="pref-chart-chart" />
+  </div>
 </template>
 
 <script>
@@ -37,6 +54,11 @@ export default {
       type: Array,
       default: null,
     },
+  },
+  data() {
+    return {
+      series: [],
+    }
   },
   mounted() {
     this.getPrefData(this.$props.poplationType, this.$props.prefectures).then(
@@ -193,15 +215,46 @@ export default {
         },
       }
 
-      Highcharts.chart(this.$refs.chart, options)
+      const chart = Highcharts.chart(this.$refs.chart, options)
+
+      this.series = chart.series
+
+      // 東京以外非表示に
+      for (let i = 0; i < chart.series.length; i++) {
+        if (chart.series[i].name !== '東京都')
+          chart.series[i].update({ visible: false, showInLegend: false }, false)
+        else chart.series[i].update({ visible: true, showInLegend: true }, true)
+      }
+    },
+    onChangePrefCheckbox(item) {
+      item.update({ visible: item.visible, showInLegend: item.visible })
     },
   },
 }
 </script>
 
 <style>
+.pref-chart-container {
+  background-color: #eee;
+  margin-bottom: 1em;
+  padding: 1em;
+}
+.prefs-chart-checkboxs {
+  background-color: #fff;
+  margin-bottom: 1em;
+}
+.prefs-chart-checkboxs ul {
+  list-style: none;
+  text-align: center;
+}
+.prefs-chart-checkboxs ul li {
+  display: inline-block;
+  width: 20%;
+}
 .pref-chart-chart {
-  width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
   height: 600px;
 }
 </style>
