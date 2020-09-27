@@ -3,7 +3,14 @@
 ![image](prefecture-population-chart-nuxt.gif)
 
 ## DemoPage
-- https://sakanaclub.xsrv.jp/dc/covid19
+- [デモページA](https://sakanaclub.xsrv.jp/prefecture-population-chart-nuxt/)
+- [デモページB](https://sakanaclub.xsrv.jp/prefecture-population-chart-nuxt2/)
+
+## 内容
+- RESAS(地域経済分析システム) APIの「都道府県一覧」からAPIを取得する
+- APIレスポンスから都道府県一覧のチェックボックスを動的に生成する
+- 都道府県にチェックを入れると、RESAS APIから選択された都道府県の「人口構成」を取得する
+- 人口構成APIレスポンスから、X軸:年、Y軸:人口数の折れ線グラフを動的に生成して表示する
 
 ## Build Setup
 
