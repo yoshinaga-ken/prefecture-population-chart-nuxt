@@ -22,8 +22,8 @@
 <script>
 import _ from 'lodash'
 import Highcharts from 'highcharts'
-
 import axios from 'axios'
+
 // RESAS(地域経済分析システム) API
 // API: https://opendata.resas-portal.go.jp/docs/api/v1/index.html
 const X_API_KEY = '3BKB29A7OA7kXnQ55wyn8Y3lKmGMrT6SnHH24ASv'
@@ -50,6 +50,10 @@ export default {
         return POPULATION_TYPE.includes(value)
       },
     },
+    isDynamicLoad: {
+      type: Boolean,
+      default: true,
+    },
     prefectures: {
       type: Array,
       default: null,
@@ -58,23 +62,82 @@ export default {
   data() {
     return {
       series: [],
+      prefCodes: {},
     }
   },
   mounted() {
-    this.getPrefData(this.$props.poplationType, this.$props.prefectures).then(
-      (prefData) => {
+    if (this.$props.isDynamicLoad) {
+      this.getPrefData(this.$props.poplationType, this.$props.prefectures).then(
+        (prefData) => {
+          this.prefCodes = prefData.prefCodes
+          this.createChart(prefData.series, 1960) // TODO:
+        }
+      )
+    } else {
+      this.getAllPrefData(
+        this.$props.poplationType,
+        this.$props.prefectures
+      ).then((prefData) => {
         this.createChart(prefData.series, prefData.pointStart)
-      }
-    )
+      })
+    }
   },
   methods: {
+    /**
+     * [都道府県情報の取得]
+     * @return {[Object]}                [description]
+     */
+    getPrefData() {
+      const ret = {
+        prefCodes: {},
+        series: [],
+      }
+
+      // 都道府県のデータを取得
+      return axiosGetFromRESAS(API_PREFECTURES).then((response) => {
+        for (let i = 0; i < response.data.result.length; i++) {
+          ret.prefCodes[response.data.result[i].prefName] =
+            response.data.result[i].prefCode
+          const item = {
+            name: response.data.result[i].prefName,
+          }
+          ret.series.push(item)
+        }
+        return Promise.resolve(ret)
+      })
+    },
+    /**
+     * [都道府県の人口データを取得]
+     * @return {[Object]}                [description]
+     */
+    getPrefSeriesData(prefCode, poplationType) {
+      const ret = {
+        data: [],
+        pointStart: Number.MAX_SAFE_INTEGER,
+      }
+      const idx = POPULATION_TYPE.indexOf(poplationType)
+      return axiosGetFromRESAS(
+        API_PREF_POPULATION + '?cityCode=-&prefCode=' + prefCode
+      ).then((responses) => {
+        const popTotal = responses.data.result.data[idx].data
+        const years = popTotal.map((d) => d.year)
+        const values = popTotal.map((d) => d.value)
+
+        // 最小の年度を取得
+        const min = _.min(years)
+        ret.pointStart = min
+        ret.data = values
+        return Promise.resolve(ret)
+      })
+    },
+
     /**
      * [都道府県情報の取得]
      * @param  {[String]} poplationType [人口タイプ] ('total', 'yang', 'working','aged')
      * @param  {[Array]} prefs           [対象都道府県名]
      * @return {[Object]}                [description]
      */
-    getPrefData(poplationType, prefs) {
+    getAllPrefData(poplationType, prefs) {
       const ret = {
         prefectures: {},
         series: [],
@@ -239,15 +302,33 @@ export default {
 
       this.series = chart.series
 
-      // 東京以外非表示に
-      for (let i = 0; i < chart.series.length; i++) {
-        if (chart.series[i].name !== '東京都')
-          chart.series[i].update({ visible: false, showInLegend: false }, false)
-        else chart.series[i].update({ visible: true, showInLegend: true }, true)
+      if (this.$props.isDynamicLoad) {
+        // 全てのシリーズを非表示
+        for (let i = 0; i < chart.series.length; i++) {
+          chart.series[i].update({ visible: false, showInLegend: false }, true)
+        }
       }
     },
     onChangePrefCheckbox(item) {
-      item.update({ visible: item.visible, showInLegend: item.visible })
+      if (this.$props.isDynamicLoad) {
+        if (item.data.length === 0) {
+          const prefCode = this.prefCodes[item.name]
+          this.getPrefSeriesData(prefCode, this.$props.poplationType).then(
+            (d) => {
+              item.setData(d.data, false)
+              item.update({
+                visible: item.visible,
+                showInLegend: item.visible,
+                pointStart: d.pointStart,
+              })
+            }
+          )
+        } else {
+          item.update({ visible: item.visible, showInLegend: item.visible })
+        }
+      } else {
+        item.update({ visible: item.visible, showInLegend: item.visible })
+      }
     },
   },
 }

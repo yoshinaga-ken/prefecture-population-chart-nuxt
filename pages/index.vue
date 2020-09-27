@@ -1,6 +1,7 @@
 <template>
   <div class="container">
-    <PrefChart />
+    <PrefChart poplation-type="total" :is-dynamic-load="true" />
+    <!-- <PrefChart poplation-type="working" :is-dynamic-load="false" :prefectures="['東京都','大阪府','福岡県']" /> -->
   </div>
 </template>
 
