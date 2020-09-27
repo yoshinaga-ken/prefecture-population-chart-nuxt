@@ -1,4 +1,9 @@
-# prefecture-population-chart-nuxt
+# 都道府県別の総人口推移グラフを表示するSPA(Single Page Application)
+
+![image](prefecture-population-chart-nuxt.gif)
+
+## DemoPage
+- https://sakanaclub.xsrv.jp/dc/covid19
 
 ## Build Setup
 
