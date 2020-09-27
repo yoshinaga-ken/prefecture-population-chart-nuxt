@@ -1,14 +1,6 @@
 <template>
   <div class="container">
-    <PrefChart
-      chart-title="東京都と大阪府と福岡県の 総人口 の推移"
-      poplation-type="total"
-      :prefectures="['東京都', '大阪府', '福岡県']"
-    />
-    <PrefChart
-      poplation-type="yang"
-      :prefectures="['東京都', '大阪府', '京都府', '福岡県', '沖縄県']"
-    />
+    <PrefChart />
   </div>
 </template>
 
