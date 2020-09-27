@@ -167,12 +167,32 @@ export default {
         yAxis: {
           title: {
             text: '人口数',
+            align: 'high',
+            rotation: 0,
+            x: 80,
+            y: -20,
+            style: {
+              'font-size': '1.2em',
+              'font-weight': 'bold',
+            },
+          },
+          labels: {
+            formatter() {
+              return Highcharts.numberFormat(this.value, 0, '', ',')
+            },
           },
         },
 
         xAxis: {
           title: {
             text: '年度',
+            align: 'high',
+            x: 50,
+            y: -20,
+            style: {
+              'font-size': '1.2em',
+              'font-weight': 'bold',
+            },
           },
           accessibility: {
             rangeDescription: '年度',
