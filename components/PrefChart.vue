@@ -4,13 +4,7 @@
       <legend>都道府県</legend>
       <ul>
         <li v-for="(item, i) in series" :key="i">
-          <label
-            ><input
-              v-model="item.visible"
-              type="checkbox"
-              @change="onChangePrefCheckbox(item)"
-            />{{ item.name }}</label
-          >
+          <label><input v-model="item.visible" type="checkbox" @change="onChangePrefCheckbox(item)" />{{ item.name }}</label>
         </li>
       </ul>
     </fieldset>
@@ -27,11 +21,9 @@ import axios from 'axios'
 // RESAS(地域経済分析システム) API
 // API: https://opendata.resas-portal.go.jp/docs/api/v1/index.html
 const X_API_KEY = '3BKB29A7OA7kXnQ55wyn8Y3lKmGMrT6SnHH24ASv'
-const axiosGetFromRESAS = (url) =>
-  axios.get(url, { headers: { 'X-API-KEY': X_API_KEY } })
+const axiosGetFromRESAS = (url) => axios.get(url, { headers: { 'X-API-KEY': X_API_KEY } })
 const API_PREFECTURES = 'https://opendata.resas-portal.go.jp/api/v1/prefectures'
-const API_PREF_POPULATION =
-  'https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear'
+const API_PREF_POPULATION = 'https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear'
 
 const POPULATION_TYPE = ['total', 'yang', 'working', 'aged']
 const POPULATION_TYPE_NAME = ['総人口', '年少人口', '生産年齢人口', '老年人口']
@@ -67,17 +59,12 @@ export default {
   },
   mounted() {
     if (this.$props.isDynamicLoad) {
-      this.getPrefData(this.$props.poplationType, this.$props.prefectures).then(
-        (prefData) => {
-          this.prefCodes = prefData.prefCodes
-          this.createChart(prefData.series, 1960) // TODO:
-        }
-      )
+      this.getPrefData(this.$props.poplationType, this.$props.prefectures).then((prefData) => {
+        this.prefCodes = prefData.prefCodes
+        this.createChart(prefData.series, 1960) // TODO:
+      })
     } else {
-      this.getAllPrefData(
-        this.$props.poplationType,
-        this.$props.prefectures
-      ).then((prefData) => {
+      this.getAllPrefData(this.$props.poplationType, this.$props.prefectures).then((prefData) => {
         this.createChart(prefData.series, prefData.pointStart)
       })
     }
@@ -96,8 +83,7 @@ export default {
       // 都道府県のデータを取得
       return axiosGetFromRESAS(API_PREFECTURES).then((response) => {
         for (let i = 0; i < response.data.result.length; i++) {
-          ret.prefCodes[response.data.result[i].prefName] =
-            response.data.result[i].prefCode
+          ret.prefCodes[response.data.result[i].prefName] = response.data.result[i].prefCode
           const item = {
             name: response.data.result[i].prefName,
           }
@@ -116,9 +102,7 @@ export default {
         pointStart: Number.MAX_SAFE_INTEGER,
       }
       const idx = POPULATION_TYPE.indexOf(poplationType)
-      return axiosGetFromRESAS(
-        API_PREF_POPULATION + '?cityCode=-&prefCode=' + prefCode
-      ).then((responses) => {
+      return axiosGetFromRESAS(API_PREF_POPULATION + '?cityCode=-&prefCode=' + prefCode).then((responses) => {
         const popTotal = responses.data.result.data[idx].data
         const years = popTotal.map((d) => d.year)
         const values = popTotal.map((d) => d.value)
@@ -147,23 +131,16 @@ export default {
       // 都道府県のデータを取得
       return axiosGetFromRESAS(API_PREFECTURES).then((response) => {
         for (let i = 0; i < response.data.result.length; i++) {
-          ret.prefectures[response.data.result[i].prefCode] =
-            response.data.result[i].prefName
+          ret.prefectures[response.data.result[i].prefCode] = response.data.result[i].prefName
         }
 
-        const prefsFiltered = prefs
-          ? response.data.result.filter((d) => prefs.includes(d.prefName))
-          : response.data.result
+        const prefsFiltered = prefs ? response.data.result.filter((d) => prefs.includes(d.prefName)) : response.data.result
 
         const prefCodes = prefsFiltered.map((d) => d.prefCode)
 
         // 全ての都道府県の総人口のデータを取得 (非同期)
         return Promise.all(
-          prefCodes.map((prefCode) =>
-            axiosGetFromRESAS(
-              API_PREF_POPULATION + '?cityCode=-&prefCode=' + prefCode
-            )
-          )
+          prefCodes.map((prefCode) => axiosGetFromRESAS(API_PREF_POPULATION + '?cityCode=-&prefCode=' + prefCode))
         ).then((responses) => {
           const idx = POPULATION_TYPE.indexOf(poplationType)
           for (let i = 0; i < responses.length; i++) {
@@ -192,30 +169,13 @@ export default {
       Highcharts.setOptions({
         lang: {
           thousandsSep: ',',
-          shortMonths: [
-            '1月',
-            '2月',
-            '3月',
-            '4月',
-            '5月',
-            '6月',
-            '7月',
-            '8月',
-            '9月',
-            '10月',
-            '11月',
-            '12月',
-          ],
+          shortMonths: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
         },
       })
 
       const chartTitle =
         this.$props.chartTitle === null
-          ? '都道府県別 ' +
-            POPULATION_TYPE_NAME[
-              POPULATION_TYPE.indexOf(this.$props.poplationType)
-            ] +
-            ' の推移'
+          ? '都道府県別 ' + POPULATION_TYPE_NAME[POPULATION_TYPE.indexOf(this.$props.poplationType)] + ' の推移'
           : this.$props.chartTitle
 
       const options = {
@@ -313,16 +273,14 @@ export default {
       if (this.$props.isDynamicLoad) {
         if (item.data.length === 0) {
           const prefCode = this.prefCodes[item.name]
-          this.getPrefSeriesData(prefCode, this.$props.poplationType).then(
-            (d) => {
-              item.setData(d.data, false)
-              item.update({
-                visible: item.visible,
-                showInLegend: item.visible,
-                pointStart: d.pointStart,
-              })
-            }
-          )
+          this.getPrefSeriesData(prefCode, this.$props.poplationType).then((d) => {
+            item.setData(d.data, false)
+            item.update({
+              visible: item.visible,
+              showInLegend: item.visible,
+              pointStart: d.pointStart,
+            })
+          })
         } else {
           item.update({ visible: item.visible, showInLegend: item.visible })
         }
