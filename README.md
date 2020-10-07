@@ -12,6 +12,11 @@
 - 都道府県にチェックを入れると、RESAS APIから選択された都道府県の「人口構成」を取得する
 - 人口構成APIレスポンスから、X軸:年、Y軸:人口数の折れ線グラフを動的に生成して表示する
 
+
+## 関連サイト
+- [人口構成多次元チャート (表示方式検証中)](https://sakanaclub.xsrv.jp/prefecture-population-dc/?data=population.csv)
+- [人口構成ラインチャート < RESAS-API](https://resas.go.jp/population-composition/#/transition/13/13101/2017/0/5.333900736553437/41.42090017812787/142.29371418128918/-)
+
 ## Build Setup
 
 ```bash
